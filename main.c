@@ -11,6 +11,11 @@
 #define DBVER1_SIZE       IMEI_ENCODED_SIZE*2
 #define DBVER2_SIZE       DB_SIGN*2+DBVER1_SIZE
 
+enum DBVER {
+    DBVER1=1,
+    DBVER2=2
+};
+
 size_t fsize(int fd){
     struct stat fst;
     fstat(fd, &fst);
@@ -44,29 +49,24 @@ int main(){
     int dbfd = open("MP0B_001", O_RDWR);
     unsigned char encoded_imei[IMEI_ENCODED_SIZE];
     unsigned char out_imei[IMEI_SIZE];
-    
+    int dbversion = 0;
     switch (fsize(dbfd)) {
         case DBVER1_SIZE:
-            for(int imei_num=0; imei_num<2; imei_num++){
-                read(dbfd, encoded_imei, sizeof(encoded_imei));
-                decode_imei(encoded_imei, out_imei);
-                printf("IMEI %d: %s\n",imei_num+1, out_imei);
-
-                void* tmp = malloc(DB_SIGN);
-                read(dbfd, tmp, sizeof(tmp));
-                free(tmp);
-            }
+            dbversion = DBVER1;
             break;
         case DBVER2_SIZE:
-            for(int imei_num=0; imei_num<2; imei_num++){
-                read(dbfd, encoded_imei, sizeof(encoded_imei));
-                decode_imei(encoded_imei, out_imei);
-                printf("IMEI %d: %s\n",imei_num+1, out_imei);
-            }
+            dbversion = DBVER2;
             break;
         default:
             assert(0);
             break;
+    }
+
+    printf("DB Version: %d\n", dbversion);
+    for(int imei_num=0; imei_num<2; imei_num++){
+        read(dbfd, encoded_imei, sizeof(encoded_imei));
+        decode_imei(encoded_imei, out_imei);
+        printf("IMEI %d: %s\n", imei_num+1, out_imei);
     }
     
     close(dbfd);
