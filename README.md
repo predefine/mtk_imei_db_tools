@@ -7,7 +7,7 @@ make
 ```
 
 ## DB Version Support
-- [ ] 1 (Reading and editing, not tested)
+- [x] 1 (Reading and editing) NOT TESTED!!!
 - [x] 2 (Reading and editing)
 
 ## DB
