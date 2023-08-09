@@ -79,7 +79,7 @@ void read_imei(int dbfd, int dbversion){
 
 void usage(char* name){
     printf(
-        "Usage: %s <r|w> <DB NAME>\n",
+        "Usage: %s <r|w|c> <DB NAME>\n",
     name);
 }
 
@@ -102,6 +102,10 @@ int main(int argc, char** argv){
             read_imei(dbfd, dbversion);
             break;
         case 'w':
+            printf("Not implemented!\n");
+            return 1;
+            break;
+        case 'c':
             printf("Not implemented!\n");
             return 1;
             break;
