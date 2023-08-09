@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -85,6 +86,27 @@ void read_imei(int dbfd, int dbversion){
     }
 }
 
+void write_imei(int dbfd, int dbversion, int argc, char** argv){
+    if(argc<4){
+        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345>\n", argv[0]);
+        return;
+    }
+    if (strlen(argv[3])!=15){
+        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345>\n", argv[0]);
+        return;
+    }
+    unsigned int dbsize = 0;
+    if(dbversion==DBVER1) dbsize=DBVER1_SIZE;
+    else if(dbversion==DBVER2) dbsize=DBVER2_SIZE;
+    unsigned char db[dbsize];
+    read(dbfd, db, dbsize);
+    lseek(dbfd, 0, SEEK_SET);
+    unsigned char imei_out[IMEI_ENCODED_SIZE];
+    encode_imei((unsigned char*) argv[3], imei_out);
+    memcpy(db, imei_out, sizeof(imei_out));
+    write(dbfd, db, sizeof(db));
+}
+
 void usage(char* name){
     printf(
         "Usage: %s <r|w|c> <DB NAME>\n",
@@ -110,8 +132,13 @@ int main(int argc, char** argv){
             read_imei(dbfd, dbversion);
             break;
         case 'w':
-            printf("Not implemented!\n");
-            return 1;
+        if(!exists(argv[2])){
+                usage(argv[0]);
+                return 1;
+            }
+            dbfd = open(argv[2], O_RDWR);
+            dbversion = get_db_version(dbfd);
+            write_imei(dbfd, dbversion, argc, argv);
             break;
         case 'c':
             printf("Not implemented!\n");
