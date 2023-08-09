@@ -118,7 +118,7 @@ void write_imei(int dbfd, int dbversion, int argc, char** argv){
     write(dbfd, db, sizeof(db));
 }
 
-void crete_db(int* dbfd, int argc, char** argv){
+void create_db(int* dbfd, int argc, char** argv){
     if(argc<4){
         printf("Usage: %s c <NEW DB NAME> <DB VERSION 1|2>\n", argv[0]);
         return;
@@ -188,7 +188,7 @@ int main(int argc, char** argv){
                 usage(argv[0]);
                 return 1;
             }
-            crete_db(&dbfd, argc, argv);
+            create_db(&dbfd, argc, argv);
             break;
         default:
             break;
