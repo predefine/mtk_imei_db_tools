@@ -7,13 +7,13 @@ make
 ```
 
 ## DB Version Support
-- [ ] 1 (Only reading, don't tested)
-- [x] 2 (Only reading)
+- [ ] 1 (Reading and editing, not tested)
+- [x] 2 (Reading and editing)
 
 ## DB
 - [x] Reading
 - [ ] Creating
-- [x] Editing (IMEI1 only)
+- [x] Editing
 
 ## IMEI
 - [x] Imei decoding
