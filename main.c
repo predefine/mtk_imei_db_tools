@@ -16,6 +16,13 @@ enum DBVER {
     DBVER2=2
 };
 
+int exists(char* path){
+    if (!access(path, F_OK)){
+        return 1;
+    }
+    return 0;
+}
+
 size_t fsize(int fd){
     struct stat fst;
     fstat(fd, &fst);
@@ -45,30 +52,63 @@ void decode_imei(unsigned char* imei_in, unsigned char* imei_out){
     assert((tmp_sign[0]==imei_in[10])&&(tmp_sign[1]==imei_in[11]));
 }
 
-int main(){
-    int dbfd = open("MP0B_001", O_RDWR);
-    unsigned char encoded_imei[IMEI_ENCODED_SIZE];
-    unsigned char out_imei[IMEI_SIZE];
-    int dbversion = 0;
+int get_db_version(int dbfd){
     switch (fsize(dbfd)) {
         case DBVER1_SIZE:
-            dbversion = DBVER1;
+            return DBVER1;
             break;
         case DBVER2_SIZE:
-            dbversion = DBVER2;
+            return DBVER2;
             break;
         default:
-            assert(0);
+            return -1;
             break;
     }
+}
 
+void read_imei(int dbfd, int dbversion){
+    unsigned char encoded_imei[IMEI_ENCODED_SIZE];
+    unsigned char out_imei[IMEI_SIZE];
     printf("DB Version: %d\n", dbversion);
     for(int imei_num=0; imei_num<2; imei_num++){
         read(dbfd, encoded_imei, sizeof(encoded_imei));
         decode_imei(encoded_imei, out_imei);
         printf("IMEI %d: %s\n", imei_num+1, out_imei);
     }
-    
-    close(dbfd);
+}
+
+void usage(char* name){
+    printf(
+        "Usage: %s <r|w> <DB NAME>\n",
+    name);
+}
+
+int main(int argc, char** argv){
+    if (argc < 3){
+        usage(argv[0]);
+        return 1;
+    }
+
+    int dbfd = -1;
+    int dbversion = -1;
+    switch (argv[1][0]) {
+        case 'r':
+            if(!exists(argv[2])){
+                usage(argv[0]);
+                return 1;
+            }
+            dbfd = open(argv[2], O_RDONLY);
+            dbversion = get_db_version(dbfd);
+            read_imei(dbfd, dbversion);
+            break;
+        case 'w':
+            printf("Not implemented!\n");
+            return 1;
+            break;
+        default:
+            break;
+    }
+
+    if (dbfd>-1) close(dbfd);
     return 0;
 }
