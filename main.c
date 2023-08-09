@@ -6,11 +6,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define DB_SIGN           48
 #define IMEI_SIZE         15
 #define IMEI_ENCODED_SIZE 12
 #define DBVER1_SIZE       IMEI_ENCODED_SIZE*2
-#define DBVER2_SIZE       DB_SIGN*2+DBVER1_SIZE
+#define DBVER2_SIZE       IMEI_ENCODED_SIZE*10
 
 enum DBVER {
     DBVER1=1,
@@ -119,6 +118,37 @@ void write_imei(int dbfd, int dbversion, int argc, char** argv){
     write(dbfd, db, sizeof(db));
 }
 
+void crete_db(int* dbfd, int argc, char** argv){
+    if(argc<4){
+        printf("Usage: %s c <NEW DB NAME> <DB VERSION 1|2>\n", argv[0]);
+        return;
+    }
+    int dbversion = argv[3][0]-'0';
+    if (dbversion < 1 || dbversion > 2){
+        printf("Usage: %s c <NEW DB NAME> <DB VERSION 1|2>\n", argv[0]);
+        return;
+    }
+    *dbfd = open(argv[2], O_WRONLY | O_CREAT , 0755);
+    int dbsize = DBVER1_SIZE;
+    if (dbversion==DBVER2) dbsize=DBVER2_SIZE;
+    char db[dbsize];
+    for(int i = 0; i < 2; i++){
+        unsigned char imei[IMEI_ENCODED_SIZE];
+        unsigned char imei_zero[IMEI_SIZE] = "000000000000000";
+        encode_imei(imei_zero, imei);
+        memcpy(db+(i*IMEI_ENCODED_SIZE), imei, sizeof(imei)); 
+    }
+    if(dbversion==DBVER2){
+        for(int i = 0; i < 8; i++){
+            unsigned char imei[IMEI_ENCODED_SIZE];
+            unsigned char imei_zero[IMEI_SIZE] = "???????????????";
+            encode_imei(imei_zero, imei);
+            memcpy(db+((i+2)*IMEI_ENCODED_SIZE), imei, sizeof(imei)); 
+        }
+    }
+    write(*dbfd, db, sizeof(db));
+}
+
 void usage(char* name){
     printf(
         "Usage: %s <r|w|c> <DB NAME>\n",
@@ -153,8 +183,12 @@ int main(int argc, char** argv){
             write_imei(dbfd, dbversion, argc, argv);
             break;
         case 'c':
-            printf("Not implemented!\n");
-            return 1;
+            if(exists(argv[2])){
+                printf("db \"%s\" exists!\n", argv[2]);
+                usage(argv[0]);
+                return 1;
+            }
+            crete_db(&dbfd, argc, argv);
             break;
         default:
             break;
