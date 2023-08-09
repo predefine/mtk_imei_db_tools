@@ -13,7 +13,7 @@ make
 ## DB
 - [x] Reading
 - [ ] Creating
-- [ ] Editing
+- [x] Editing (IMEI1 only)
 
 ## IMEI
 - [x] Imei decoding
