@@ -17,4 +17,4 @@ make
 
 ## IMEI
 - [x] Imei decoding
-- [ ] Imei encoding
+- [x] Imei encoding

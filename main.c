@@ -39,17 +39,25 @@ void decode_imei(unsigned char* imei_in, unsigned char* imei_out){
     }
     unsigned char tmp_sign[2]={0,0};
     for (int i = 0; i < IMEI_ENCODED_SIZE-2; i++)
-    {
-        if (i & 1)
-        {
-            tmp_sign[1] += imei_in[i];
-        }
-        else
-        {
-            tmp_sign[0] += imei_in[i];
-        }
-    }
+        tmp_sign[i&1] += imei_in[i];
     assert((tmp_sign[0]==imei_in[10])&&(tmp_sign[1]==imei_in[11]));
+}
+
+void encode_imei(unsigned char* imei_in, unsigned char* imei_out){
+    char out_mask[8] = {0xAB, 0xA0, 0x6F, 0x2F, 0x1F, 0x1E, 0x9A, 0x45};
+    for(int i = 0; i < IMEI_ENCODED_SIZE-4; i++){
+        imei_out[i] = imei_in[i*2]-'0';
+        if(i!=7)
+            imei_out[i] += (imei_in[i*2+1]-'0')<<4;
+        imei_out[i] = imei_out[i] ^ out_mask[i];
+    }
+    imei_out[8] = 0xf3;
+    imei_out[9] = 0xf3;
+    imei_out[10] = 0;
+    imei_out[11] = 0;
+    for(int i = 0; i < IMEI_ENCODED_SIZE-2; i++){
+        imei_out[10+(i&1)] += imei_out[i];
+    }
 }
 
 int get_db_version(int dbfd){
