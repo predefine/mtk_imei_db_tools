@@ -87,15 +87,23 @@ void read_imei(int dbfd, int dbversion){
 }
 
 void write_imei(int dbfd, int dbversion, int argc, char** argv){
+    int imei2 = 0;
     if(argc<4){
-        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345>\n", argv[0]);
+        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345> [IMEI2 123456789012345]\n", argv[0]);
         return;
+    }
+    if (argc==5){
+        imei2 = 1;
     }
     if (strlen(argv[3])!=15){
-        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345>\n", argv[0]);
+        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345> [IMEI2 123456789012345]\n", argv[0]);
         return;
     }
-    unsigned int dbsize = 0;
+    if (imei2 && strlen(argv[4])!=15){
+        printf("Usage: %s w <DB NAME> <IMEI1 123456789012345> [IMEI2 123456789012345]\n", argv[0]);
+        return;
+    }
+    unsigned int dbsize = DBVER1_SIZE;
     if(dbversion==DBVER1) dbsize=DBVER1_SIZE;
     else if(dbversion==DBVER2) dbsize=DBVER2_SIZE;
     unsigned char db[dbsize];
@@ -104,6 +112,10 @@ void write_imei(int dbfd, int dbversion, int argc, char** argv){
     unsigned char imei_out[IMEI_ENCODED_SIZE];
     encode_imei((unsigned char*) argv[3], imei_out);
     memcpy(db, imei_out, sizeof(imei_out));
+    if(imei2){
+        encode_imei((unsigned char*) argv[4], imei_out);
+        memcpy(db+IMEI_ENCODED_SIZE, imei_out, sizeof(imei_out));
+    }
     write(dbfd, db, sizeof(db));
 }
 
@@ -132,7 +144,7 @@ int main(int argc, char** argv){
             read_imei(dbfd, dbversion);
             break;
         case 'w':
-        if(!exists(argv[2])){
+            if(!exists(argv[2])){
                 usage(argv[0]);
                 return 1;
             }
