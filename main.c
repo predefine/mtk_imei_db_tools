@@ -76,7 +76,7 @@ void read_imei(int dbfd, int dbversion) {
   unsigned char out_imei[IMEI_SIZE];
   printf("DB Version: %d\n", dbversion);
   for (int imei_num = 0; imei_num < 2; imei_num++) {
-    read(dbfd, encoded_imei, sizeof(encoded_imei));
+    (void)read(dbfd, encoded_imei, sizeof(encoded_imei));
     decode_imei(encoded_imei, out_imei);
     printf("IMEI %d: %s\n", imei_num + 1, out_imei);
   }
@@ -111,7 +111,7 @@ void write_imei(int dbfd, int dbversion, int argc, char **argv) {
   else if (dbversion == DBVER2)
     dbsize = DBVER2_SIZE;
   unsigned char db[dbsize];
-  read(dbfd, db, dbsize);
+  (void)read(dbfd, db, dbsize);
   lseek(dbfd, 0, SEEK_SET);
   unsigned char imei_out[IMEI_ENCODED_SIZE];
   encode_imei((unsigned char *)argv[3], imei_out);
@@ -120,7 +120,7 @@ void write_imei(int dbfd, int dbversion, int argc, char **argv) {
     encode_imei((unsigned char *)argv[4], imei_out);
     memcpy(db + IMEI_ENCODED_SIZE, imei_out, sizeof(imei_out));
   }
-  write(dbfd, db, sizeof(db));
+  (void)write(dbfd, db, sizeof(db));
 }
 
 void create_db(int *dbfd, int argc, char **argv) {
@@ -152,7 +152,7 @@ void create_db(int *dbfd, int argc, char **argv) {
       memcpy(db + ((i + 2) * IMEI_ENCODED_SIZE), imei, sizeof(imei));
     }
   }
-  write(*dbfd, db, sizeof(db));
+  (void)write(*dbfd, db, sizeof(db));
 }
 
 void usage(char *name) { printf("Usage: %s <r|w|c> <DB NAME>\n", name); }
